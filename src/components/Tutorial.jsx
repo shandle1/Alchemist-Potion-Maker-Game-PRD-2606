@@ -37,22 +37,36 @@ const tutorialSteps = [
   },
   {
     id: 5,
-    title: "Crafting Your Potion",
-    content: "Once you've selected your ingredients, click 'Craft Potion' to begin brewing. The more accurate your recipe, the more points you'll earn!",
-    highlight: "craft-button",
+    title: "Ingredient Order Matters!",
+    content: "⚠️ IMPORTANT: You must select ingredients in the exact order listed in the recipe! The first ingredient in the recipe must be selected first, then the second, and so on. Wrong order = failed potion!",
+    highlight: "ingredient-shelf",
     ghostPosition: "center"
   },
   {
     id: 6,
+    title: "Preparation Methods",
+    content: "After selecting ingredients in the correct order, you'll need to prepare each one using specific methods. Each ingredient requires a different preparation technique - chop, crush, burn, purify, and many more!",
+    highlight: "craft-button",
+    ghostPosition: "center"
+  },
+  {
+    id: 7,
+    title: "Crafting Your Potion",
+    content: "Once you've selected your ingredients in order and prepared them correctly, your potion will be complete! Perfect recipes with correct order and preparations earn full rewards.",
+    highlight: "craft-button",
+    ghostPosition: "center"
+  },
+  {
+    id: 8,
     title: "Leveling Up",
     content: "As you successfully brew potions, you'll gain experience and level up. Higher levels unlock new recipes and more powerful ingredients!",
     highlight: "player-stats",
     ghostPosition: "top"
   },
   {
-    id: 7,
+    id: 9,
     title: "Ready to Begin!",
-    content: "You're now ready to start your alchemical journey! Remember, precision and patience are key to becoming a master alchemist. Good luck!",
+    content: "You're now ready to start your alchemical journey! Remember: correct ingredient ORDER, proper preparation methods, and patience are key to becoming a master alchemist. Good luck!",
     highlight: null,
     ghostPosition: "center"
   }
@@ -134,6 +148,40 @@ function Tutorial() {
             <p className="text-stone-300 leading-relaxed text-lg">
               {currentStepData.content}
             </p>
+            
+            {/* Special visual emphasis for ingredient order step */}
+            {currentStep === 4 && (
+              <div className="mt-4 p-4 bg-red-900/30 border border-red-500 rounded-lg">
+                <div className="text-red-300 text-sm font-medium mb-2">
+                  📋 Example Recipe Order:
+                </div>
+                <div className="space-y-1 text-red-200 text-sm">
+                  <div>1️⃣ Red Mushroom (select first)</div>
+                  <div>2️⃣ Spring Water (select second)</div>
+                  <div>3️⃣ Mint Leaves (select third)</div>
+                </div>
+                <div className="mt-2 text-red-400 text-xs italic">
+                  Selecting in wrong order will result in a failed potion!
+                </div>
+              </div>
+            )}
+
+            {/* Special visual emphasis for preparation step */}
+            {currentStep === 5 && (
+              <div className="mt-4 p-4 bg-purple-900/30 border border-purple-500 rounded-lg">
+                <div className="text-purple-300 text-sm font-medium mb-2">
+                  🔧 Preparation Examples:
+                </div>
+                <div className="space-y-1 text-purple-200 text-sm">
+                  <div>🍄 Red Mushroom → Chop</div>
+                  <div>💧 Spring Water → Purify</div>
+                  <div>🌿 Mint Leaves → Crush</div>
+                </div>
+                <div className="mt-2 text-purple-400 text-xs italic">
+                  Each ingredient needs its specific preparation method!
+                </div>
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 

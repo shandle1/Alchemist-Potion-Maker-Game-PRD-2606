@@ -25,38 +25,61 @@ function IngredientShelf() {
     }
   };
 
+  const getRarityGlow = (rarity) => {
+    switch (rarity) {
+      case 'common': return 'hover:shadow-gray-300';
+      case 'rare': return 'hover:shadow-blue-300';
+      case 'epic': return 'hover:shadow-purple-300';
+      case 'legendary': return 'hover:shadow-yellow-300';
+      default: return 'hover:shadow-gray-300';
+    }
+  };
+
+  // Filter ingredients based on player level
+  const availableIngredients = state.availableIngredients.filter(ingredient => {
+    if (ingredient.rarity === 'legendary') return state.currentLevel >= 5;
+    if (ingredient.rarity === 'epic') return state.currentLevel >= 3;
+    if (ingredient.rarity === 'rare') return state.currentLevel >= 2;
+    return true; // common ingredients always available
+  });
+
   return (
     <div className="space-y-4">
-      <h3 className="text-xl font-medieval font-semibold text-amber-400">
-        Ingredient Shelf
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-medieval font-semibold text-amber-400">
+          Ingredient Shelf
+        </h3>
+        <div className="text-stone-400 text-sm">
+          Level {state.currentLevel} Access
+        </div>
+      </div>
       
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {state.availableIngredients.map((ingredient) => (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
+        {availableIngredients.map((ingredient) => (
           <motion.button
             key={ingredient.id}
             onClick={() => handleIngredientClick(ingredient)}
             disabled={isIngredientSelected(ingredient) || state.selectedIngredients.length >= 3}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${
+            className={`relative p-3 rounded-xl border-2 transition-all duration-300 ${
               isIngredientSelected(ingredient)
                 ? 'opacity-50 cursor-not-allowed bg-stone-600'
                 : state.selectedIngredients.length >= 3
                 ? 'opacity-60 cursor-not-allowed bg-stone-700'
-                : `${getRarityColor(ingredient.rarity)} hover:shadow-lg ingredient-hover`
+                : `${getRarityColor(ingredient.rarity)} hover:shadow-lg ${getRarityGlow(ingredient.rarity)} ingredient-hover`
             }`}
           >
             {/* Ingredient Icon */}
-            <div className="text-3xl mb-2">{ingredient.icon}</div>
+            <div className="text-2xl mb-1">{ingredient.icon}</div>
             
             {/* Ingredient Name */}
-            <div className="text-sm font-medium text-stone-800 mb-1">
+            <div className="text-xs font-medium text-stone-800 mb-1 leading-tight">
               {ingredient.name}
             </div>
             
             {/* Rarity Badge */}
-            <div className={`absolute top-1 right-1 px-2 py-1 rounded-full text-xs font-bold ${
+            <div className={`absolute top-1 right-1 px-1 py-0.5 rounded-full text-xs font-bold ${
               ingredient.rarity === 'common' ? 'bg-gray-500 text-white' :
               ingredient.rarity === 'rare' ? 'bg-blue-500 text-white' :
               ingredient.rarity === 'epic' ? 'bg-purple-500 text-white' :
@@ -68,23 +91,52 @@ function IngredientShelf() {
             {/* Selection Indicator */}
             {isIngredientSelected(ingredient) && (
               <div className="absolute inset-0 bg-amber-400/30 rounded-xl flex items-center justify-center">
-                <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
+                <div className="w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xs font-bold">✓</span>
                 </div>
               </div>
             )}
             
-            {/* Magical Shimmer Effect */}
-            {!isIngredientSelected(ingredient) && state.selectedIngredients.length < 3 && (
+            {/* Magical Shimmer Effect for Rare Items */}
+            {!isIngredientSelected(ingredient) && state.selectedIngredients.length < 3 && ingredient.rarity !== 'common' && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+            )}
+            
+            {/* Legendary Glow Effect */}
+            {ingredient.rarity === 'legendary' && !isIngredientSelected(ingredient) && (
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-yellow-400/20 via-transparent to-yellow-400/20 animate-pulse"></div>
             )}
           </motion.button>
         ))}
       </div>
       
       {/* Selection Counter */}
-      <div className="text-center text-stone-400 text-sm">
-        {state.selectedIngredients.length}/3 ingredients selected
+      <div className="flex items-center justify-between text-stone-400 text-sm">
+        <span>{state.selectedIngredients.length}/3 ingredients selected</span>
+        <span>{availableIngredients.length} ingredients available</span>
+      </div>
+      
+      {/* Rarity Legend */}
+      <div className="bg-stone-700/30 rounded-lg p-3 border border-stone-600">
+        <div className="text-stone-300 text-xs font-medium mb-2">Rarity Guide:</div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
+            <span className="text-stone-400">Common</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span className="text-stone-400">Rare (Lv2+)</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            <span className="text-stone-400">Epic (Lv3+)</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <span className="text-stone-400">Legendary (Lv5+)</span>
+          </div>
+        </div>
       </div>
     </div>
   );
