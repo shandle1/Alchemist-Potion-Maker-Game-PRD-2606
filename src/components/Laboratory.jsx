@@ -1,38 +1,42 @@
-import React,{useState,useEffect} from 'react';
-import {motion} from 'framer-motion';
-import {useGame} from '../contexts/GameContext';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useGame } from '../contexts/GameContext';
 import Cauldron from './Cauldron';
 import IngredientShelf from './IngredientShelf';
 import PotionResult from './PotionResult';
 import IngredientPreparation from './IngredientPreparation';
 
 function Laboratory() {
-  const {state,dispatch}=useGame();
-  const [showResult,setShowResult]=useState(false);
-  const [craftingAnimation,setCraftingAnimation]=useState(false);
+  const { state, dispatch } = useGame();
+  const [showResult, setShowResult] = useState(false);
+  const [craftingAnimation, setCraftingAnimation] = useState(false);
 
-  useEffect(()=> {
-    if (state.gamePhase==='completed') {
+  useEffect(() => {
+    if (state.gamePhase === 'completed') {
       setShowResult(true);
     }
-  },[state.gamePhase]);
+  }, [state.gamePhase]);
 
-  const handleCraftPotion=()=> {
-    if (state.selectedIngredients.length===0) return;
-    dispatch({type: 'START_PREPARATION'});
+  const handleCraftPotion = () => {
+    if (state.selectedIngredients.length === 0) return;
+    dispatch({ type: 'START_PREPARATION' });
   };
 
-  const handleNextRecipe=()=> {
+  const handleRemoveIngredient = (index) => {
+    dispatch({ type: 'REMOVE_INGREDIENT', payload: index });
+  };
+
+  const handleNextRecipe = () => {
     setShowResult(false);
-    dispatch({type: 'NEXT_RECIPE'});
+    dispatch({ type: 'NEXT_RECIPE' });
   };
 
   return (
     <div className="relative">
       {/* Laboratory Background */}
       <motion.div
-        initial={{opacity: 0,scale: 0.95}}
-        animate={{opacity: 1,scale: 1}}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         className="bg-stone-800/80 backdrop-blur-sm rounded-2xl p-6 border border-stone-700 shadow-2xl min-h-[600px] relative overflow-hidden"
       >
         {/* Ambient Lighting Effects */}
@@ -55,6 +59,7 @@ function Laboratory() {
             <Cauldron
               selectedIngredients={state.selectedIngredients}
               onCraft={handleCraftPotion}
+              onRemoveIngredient={handleRemoveIngredient}
               isAnimating={craftingAnimation}
               canCraft={state.selectedIngredients.length > 0}
             />
@@ -62,9 +67,9 @@ function Laboratory() {
             {/* Craft Button */}
             <motion.button
               onClick={handleCraftPotion}
-              disabled={state.selectedIngredients.length===0 || craftingAnimation}
-              whileHover={{scale: state.selectedIngredients.length > 0 ? 1.02 : 1}}
-              whileTap={{scale: state.selectedIngredients.length > 0 ? 0.98 : 1}}
+              disabled={state.selectedIngredients.length === 0 || craftingAnimation}
+              whileHover={{ scale: state.selectedIngredients.length > 0 ? 1.02 : 1 }}
+              whileTap={{ scale: state.selectedIngredients.length > 0 ? 0.98 : 1 }}
               className={`w-full py-4 px-6 rounded-xl font-medieval font-bold text-lg transition-all duration-300 ${
                 state.selectedIngredients.length > 0 && !craftingAnimation
                   ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg hover:shadow-xl cauldron-glow'
@@ -83,7 +88,7 @@ function Laboratory() {
 
         {/* Floating Particles */}
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(6)].map((_,i)=> (
+          {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute w-1 h-1 bg-amber-400 rounded-full opacity-60"
@@ -92,8 +97,8 @@ function Laboratory() {
                 top: `${30 + (i % 3) * 20}%`,
               }}
               animate={{
-                y: [-10,-30,-10],
-                opacity: [0.3,0.8,0.3],
+                y: [-10, -30, -10],
+                opacity: [0.3, 0.8, 0.3],
               }}
               transition={{
                 duration: 3 + i * 0.5,

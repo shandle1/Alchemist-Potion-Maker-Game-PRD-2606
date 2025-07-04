@@ -13,7 +13,7 @@ export default [
       globals: {
         ...globals.browser,
         React: 'readonly',
-        JSX: 'readonly'
+        JSX: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: {

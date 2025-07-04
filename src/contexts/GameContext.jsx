@@ -131,6 +131,31 @@ const customerPool = [
     urgency: 'medium',
     payment: 'Epic songs of your deeds and entertainment connections',
     preferences: ['Enhancement', 'Transformation', 'Utility']
+  },
+  // ===NEW LOVE-FOCUSED CUSTOMERS===//
+  {
+    name: 'Romeo Montague',
+    personality: 'Hopeless Romantic Young Noble',
+    story: 'A passionate young nobleman deeply in love with a fair maiden from a rival family. He desperately seeks to win her heart despite their families\' feud.',
+    urgency: 'critical',
+    payment: 'Family jewels and promises of eternal gratitude',
+    preferences: ['Transformation', 'Enhancement', 'Utility']
+  },
+  {
+    name: 'Lady Cordelia',
+    personality: 'Lonely Widow',
+    story: 'A wealthy widow who lost her husband in war. After years of mourning, she\'s ready to love again but lacks confidence in matters of the heart.',
+    urgency: 'medium',
+    payment: 'Rare perfumes and elegant jewelry',
+    preferences: ['Transformation', 'Enhancement']
+  },
+  {
+    name: 'Cupid\'s Assistant',
+    personality: 'Mischievous Love Spirit',
+    story: 'A playful spirit who works under Cupid but often messes up love matches. Needs potions to fix romantic disasters and help true love flourish.',
+    urgency: 'high',
+    payment: 'Blessed arrows and divine favor',
+    preferences: ['Transformation', 'Magic', 'Utility']
   }
 ];
 
@@ -169,7 +194,13 @@ const requestTemplates = {
     "My current form is not suitable for what I must do.",
     "The mission requires me to become something different.",
     "I seek transformation to achieve my goals.",
-    "My circumstances demand a radical change."
+    "My circumstances demand a radical change.",
+    // NEW LOVE-SPECIFIC REQUESTS
+    "I must win the heart of my beloved through magical charm.",
+    "My appearance needs enhancement to capture someone's affection.",
+    "Love eludes me - I need supernatural assistance in romance.",
+    "The object of my desire doesn't notice me - I require magical allure.",
+    "My shyness prevents me from expressing my love - I need confidence."
   ],
   Combat: [
     "Battle awaits and I must be prepared for war.",
@@ -177,6 +208,20 @@ const requestTemplates = {
     "Combat enhancement is crucial for my survival.",
     "I need an edge in the fights to come.",
     "The battlefield demands supernatural prowess."
+  ],
+  Elemental: [
+    "I must harness the power of the elements for my quest.",
+    "The elemental forces are needed for my ritual.",
+    "I require dominion over fire, water, earth, and air.",
+    "Elemental magic is the key to my success.",
+    "The ancient elements must bend to my will."
+  ],
+  Legendary: [
+    "I seek power beyond mortal comprehension.",
+    "Only legendary magic can achieve what I need.",
+    "The gods themselves would envy what I require.",
+    "Mythical power is the only solution to my predicament.",
+    "I need magic that transcends reality itself."
   ]
 };
 
@@ -190,8 +235,15 @@ const initialState = {
   currentRecipe: null,
   selectedIngredients: [],
   preparedIngredients: [],
-  gamePhase: 'auth',
+  lastCraftResult: null, // Store the last crafting result
+  gamePhase: 'auth', // 'auth', 'tutorial', 'playing', 'preparing', 'completed'
+  ownedIngredients: [], // Store purchased ingredients
+  activeBoosts: [], // Store active boosts
+  unlockedRecipes: [], // Store purchased/unlocked recipes
+  recentRecipes: [], // Track last 3 completed recipes for variety
+  hasStarted: false, // NEW: Track if player has started their first recipe
   recipes: [
+    //===HEALING POTIONS===//
     {
       id: 1,
       name: 'Basic Healing Potion',
@@ -227,6 +279,30 @@ const initialState = {
     },
     {
       id: 4,
+      name: 'Regeneration Serum',
+      description: 'Rapidly regenerates lost limbs and severe wounds.',
+      ingredients: ['Life Essence', 'Troll Blood', 'Eternal Flower'],
+      preparations: ['concentrate', 'heat', 'infuse'],
+      color: '#22c55e',
+      level: 5,
+      points: 600,
+      category: 'Healing'
+    },
+    {
+      id: 5,
+      name: 'Cure Disease Tonic',
+      description: 'Eliminates all diseases and curses from the body.',
+      ingredients: ['Holy Water', 'Angel Feather', 'Purifying Salt'],
+      preparations: ['sanctify', 'pluck', 'dissolve'],
+      color: '#84cc16',
+      level: 4,
+      points: 450,
+      category: 'Healing'
+    },
+
+    //===MAGIC POTIONS===//
+    {
+      id: 6,
       name: 'Mana Restoration Potion',
       description: 'Restores magical energy and mental focus.',
       ingredients: ['Blue Crystal', 'Moonwater', 'Sage'],
@@ -237,7 +313,7 @@ const initialState = {
       category: 'Magic'
     },
     {
-      id: 5,
+      id: 7,
       name: 'Arcane Amplifier',
       description: 'Temporarily enhances magical abilities and spell power.',
       ingredients: ['Starlight Essence', 'Void Crystal', 'Mystic Herb'],
@@ -248,7 +324,7 @@ const initialState = {
       category: 'Magic'
     },
     {
-      id: 6,
+      id: 8,
       name: 'Mage Shield Brew',
       description: 'Creates a protective barrier against magical attacks.',
       ingredients: ['Barrier Stone', 'Protective Rune', 'Moonwater'],
@@ -259,7 +335,31 @@ const initialState = {
       category: 'Magic'
     },
     {
-      id: 7,
+      id: 9,
+      name: 'Spell Mastery Elixir',
+      description: 'Grants temporary mastery over all schools of magic.',
+      ingredients: ['Wisdom Crystal', 'Cosmic Dust', 'Mind Crystal'],
+      preparations: ['polish', 'weave', 'enchant'],
+      color: '#a855f7',
+      level: 5,
+      points: 550,
+      category: 'Magic'
+    },
+    {
+      id: 10,
+      name: 'Mana Overflow Draught',
+      description: 'Doubles maximum mana capacity for extended periods.',
+      ingredients: ['Infinity Stone', 'Primal Essence', 'Reality Gem'],
+      preparations: ['activate', 'concentrate', 'enchant'],
+      color: '#7c3aed',
+      level: 6,
+      points: 700,
+      category: 'Magic'
+    },
+
+    //===ENHANCEMENT POTIONS===//
+    {
+      id: 11,
       name: 'Strength Enhancement Elixir',
       description: 'Dramatically increases physical strength and endurance.',
       ingredients: ['Giant\'s Blood', 'Iron Root', 'Bear Claw'],
@@ -270,7 +370,42 @@ const initialState = {
       category: 'Enhancement'
     },
     {
-      id: 8,
+      id: 12,
+      name: 'Speed Boost Serum',
+      description: 'Enhances reflexes and movement speed beyond human limits.',
+      ingredients: ['Lightning Shard', 'Wind Essence', 'Eagle Talon'],
+      preparations: ['channel', 'capture', 'crush'],
+      color: '#f59e0b',
+      level: 2,
+      points: 200,
+      category: 'Enhancement'
+    },
+    {
+      id: 13,
+      name: 'Intelligence Amplifier',
+      description: 'Vastly improves cognitive abilities and memory.',
+      ingredients: ['Wisdom Crystal', 'Owl Eye', 'Mind Crystal'],
+      preparations: ['polish', 'extract', 'enchant'],
+      color: '#06b6d4',
+      level: 4,
+      points: 380,
+      category: 'Enhancement'
+    },
+    {
+      id: 14,
+      name: 'Perfect Body Elixir',
+      description: 'Optimizes all physical attributes to peak performance.',
+      ingredients: ['Titan\'s Blood', 'Perfection Essence', 'Body Crystal'],
+      preparations: ['heat', 'concentrate', 'infuse'],
+      color: '#f97316',
+      level: 5,
+      points: 500,
+      category: 'Enhancement'
+    },
+
+    //===UTILITY POTIONS===//
+    {
+      id: 15,
       name: 'Invisibility Draught',
       description: 'Grants temporary invisibility for stealth missions.',
       ingredients: ['Shadow Essence', 'Chameleon Skin', 'Void Crystal'],
@@ -279,10 +414,205 @@ const initialState = {
       level: 4,
       points: 350,
       category: 'Utility'
+    },
+    {
+      id: 16,
+      name: 'Night Vision Elixir',
+      description: 'Allows perfect vision in complete darkness.',
+      ingredients: ['Bat Wing', 'Owl Eye', 'Moonbeam'],
+      preparations: ['extract', 'crush', 'capture'],
+      color: '#4b5563',
+      level: 2,
+      points: 180,
+      category: 'Utility'
+    },
+    {
+      id: 17,
+      name: 'Telepathy Brew',
+      description: 'Enables reading and projecting thoughts.',
+      ingredients: ['Mind Crystal', 'Ghost Essence', 'Soul Stone'],
+      preparations: ['enchant', 'concentrate', 'activate'],
+      color: '#ec4899',
+      level: 4,
+      points: 420,
+      category: 'Utility'
+    },
+    {
+      id: 18,
+      name: 'Time Dilation Potion',
+      description: 'Slows down time perception for the drinker.',
+      ingredients: ['Time Crystal', 'Chronos Sand', 'Reality Gem'],
+      preparations: ['activate', 'weave', 'enchant'],
+      color: '#8b5cf6',
+      level: 6,
+      points: 650,
+      category: 'Utility'
+    },
+
+    //===TRANSFORMATION POTIONS===//
+    {
+      id: 19,
+      name: 'Shapeshifter\'s Brew',
+      description: 'Allows transformation into any animal form.',
+      ingredients: ['Chameleon Skin', 'Wolf Tooth', 'Eagle Talon'],
+      preparations: ['dissolve', 'grind', 'crush'],
+      color: '#059669',
+      level: 3,
+      points: 320,
+      category: 'Transformation'
+    },
+    {
+      id: 20,
+      name: 'Age Reversal Elixir',
+      description: 'Temporarily reverses the aging process.',
+      ingredients: ['Time Crystal', 'Life Essence', 'Eternal Flower'],
+      preparations: ['activate', 'concentrate', 'infuse'],
+      color: '#f472b6',
+      level: 5,
+      points: 580,
+      category: 'Transformation'
+    },
+    {
+      id: 21,
+      name: 'Gender Swap Potion',
+      description: 'Temporarily changes the drinker\'s gender.',
+      ingredients: ['Transformation Essence', 'Mirror Shard', 'Identity Crystal'],
+      preparations: ['weave', 'polish', 'activate'],
+      color: '#a78bfa',
+      level: 4,
+      points: 400,
+      category: 'Transformation'
+    },
+
+    //===ELEMENTAL POTIONS===//
+    {
+      id: 22,
+      name: 'Fire Immunity Draught',
+      description: 'Grants complete immunity to fire and heat.',
+      ingredients: ['Fire Crystal', 'Dragon Scale', 'Phoenix Feather'],
+      preparations: ['heat', 'scale', 'pluck'],
+      color: '#ef4444',
+      level: 3,
+      points: 300,
+      category: 'Elemental'
+    },
+    {
+      id: 23,
+      name: 'Ice Control Serum',
+      description: 'Allows manipulation of ice and cold.',
+      ingredients: ['Frost Crystal', 'Ice Essence', 'Winter\'s Breath'],
+      preparations: ['freeze', 'concentrate', 'capture'],
+      color: '#0ea5e9',
+      level: 3,
+      points: 300,
+      category: 'Elemental'
+    },
+    {
+      id: 24,
+      name: 'Storm Caller\'s Brew',
+      description: 'Grants power over lightning and storms.',
+      ingredients: ['Thunder Stone', 'Storm Essence', 'Lightning Shard'],
+      preparations: ['channel', 'concentrate', 'activate'],
+      color: '#7c3aed',
+      level: 4,
+      points: 450,
+      category: 'Elemental'
+    },
+    {
+      id: 25,
+      name: 'Elemental Master Elixir',
+      description: 'Grants control over all four elements simultaneously.',
+      ingredients: ['Fire Crystal', 'Water Crystal', 'Earth Crystal', 'Air Crystal'],
+      preparations: ['balance', 'harmonize', 'unify'],
+      color: '#10b981',
+      level: 6,
+      points: 800,
+      category: 'Elemental'
+    },
+
+    //===COMBAT POTIONS===//
+    {
+      id: 26,
+      name: 'Berserker\'s Rage',
+      description: 'Induces uncontrollable fury and combat prowess.',
+      ingredients: ['Demon Horn', 'Rage Essence', 'Blood Crystal'],
+      preparations: ['forge', 'concentrate', 'activate'],
+      color: '#dc2626',
+      level: 3,
+      points: 280,
+      category: 'Combat'
+    },
+    {
+      id: 27,
+      name: 'Weapon Master\'s Brew',
+      description: 'Grants expertise with all forms of weaponry.',
+      ingredients: ['Warrior\'s Spirit', 'Steel Essence', 'Combat Crystal'],
+      preparations: ['forge', 'temper', 'enchant'],
+      color: '#6b7280',
+      level: 4,
+      points: 400,
+      category: 'Combat'
+    },
+    {
+      id: 28,
+      name: 'Battle Frenzy Elixir',
+      description: 'Multiplies combat effectiveness in group battles.',
+      ingredients: ['Pack Leader\'s Blood', 'Unity Crystal', 'War Horn Powder'],
+      preparations: ['rally', 'unite', 'amplify'],
+      color: '#b91c1c',
+      level: 5,
+      points: 520,
+      category: 'Combat'
+    },
+
+    //===LEGENDARY POTIONS===//
+    {
+      id: 29,
+      name: 'Philosopher\'s Stone Elixir',
+      description: 'The ultimate alchemical achievement - grants immortality.',
+      ingredients: ['Philosopher\'s Stone', 'Eternal Flame', 'Divine Light'],
+      preparations: ['sanctify', 'eternalize', 'transcend'],
+      color: '#fbbf24',
+      level: 7,
+      points: 1000,
+      category: 'Legendary'
+    },
+    {
+      id: 30,
+      name: 'Godhood Ascension Potion',
+      description: 'Temporarily grants divine powers and omniscience.',
+      ingredients: ['Divine Essence', 'Cosmic Awareness', 'Omnipotence Crystal'],
+      preparations: ['ascend', 'enlighten', 'deify'],
+      color: '#f59e0b',
+      level: 8,
+      points: 1500,
+      category: 'Legendary'
+    },
+    {
+      id: 31,
+      name: 'Reality Bender\'s Brew',
+      description: 'Allows the drinker to reshape reality at will.',
+      ingredients: ['Reality Gem', 'Creation Spark', 'Infinity Stone'],
+      preparations: ['reshape', 'create', 'command'],
+      color: '#8b5cf6',
+      level: 9,
+      points: 2000,
+      category: 'Legendary'
+    },
+    {
+      id: 32,
+      name: 'Omniscience Draught',
+      description: 'Grants complete knowledge of all things past, present, and future.',
+      ingredients: ['All-Seeing Eye', 'Temporal Essence', 'Universal Mind'],
+      preparations: ['perceive', 'comprehend', 'know'],
+      color: '#06b6d4',
+      level: 10,
+      points: 2500,
+      category: 'Legendary'
     }
   ],
   availableIngredients: [
-    //===== COMMON INGREDIENTS (Level 1+ - Always Available) =====//
+    //===COMMON INGREDIENTS (Level 1+ - Always Available)===//
     // Basic Herbs & Plants
     { id: 1, name: 'Red Mushroom', icon: '🍄', rarity: 'common', type: 'solid' },
     { id: 2, name: 'Mint Leaves', icon: '🌿', rarity: 'common', type: 'solid' },
@@ -314,6 +644,7 @@ const initialState = {
     { id: 24, name: 'Silver Dust', icon: '✨', rarity: 'common', type: 'powder' },
     { id: 25, name: 'Bone Dust', icon: '🦴', rarity: 'common', type: 'powder' },
     { id: 26, name: 'Chalk', icon: '⚪', rarity: 'common', type: 'powder' },
+    { id: 161, name: 'Purifying Salt', icon: '🧂', rarity: 'common', type: 'powder' },
 
     // Basic Animal Parts
     { id: 27, name: 'Rabbit Foot', icon: '🐰', rarity: 'common', type: 'solid' },
@@ -333,14 +664,15 @@ const initialState = {
     { id: 39, name: 'Pebble', icon: '🪨', rarity: 'common', type: 'solid' },
     { id: 40, name: 'Copper', icon: '🟤', rarity: 'common', type: 'solid' },
 
-    //===== RECIPE-REQUIRED INGREDIENTS (Always Available) =====//
-    // These are needed for current recipes so they're available from level 1
-    { id: 41, name: 'Blue Crystal', icon: '💎', rarity: 'common', type: 'solid' }, // For Mana Restoration Potion
-    { id: 42, name: 'Moonwater', icon: '🌙', rarity: 'common', type: 'liquid' }, // For Mana Restoration Potion & Mage Shield Brew
-    { id: 44, name: 'Cleansing Herb', icon: '🌿', rarity: 'common', type: 'solid' }, // For Antidote Elixir
+    //===RECIPE-REQUIRED INGREDIENTS (Always Available)===//
+    { id: 41, name: 'Blue Crystal', icon: '💎', rarity: 'common', type: 'solid' },
+    { id: 42, name: 'Moonwater', icon: '🌙', rarity: 'common', type: 'liquid' },
+    { id: 44, name: 'Cleansing Herb', icon: '🌿', rarity: 'common', type: 'solid' },
+    
+    //===NEW LOVE POTION INGREDIENTS===//
+    { id: 184, name: 'Rose Petals', icon: '🌹', rarity: 'common', type: 'solid' },
 
-    //===== RARE INGREDIENTS (Level 2+) =====//
-    // Rare Herbs & Plants
+    //===RARE INGREDIENTS (Level 2+)===//
     { id: 43, name: 'Fire Root', icon: '🔥', rarity: 'rare', type: 'solid' },
     { id: 45, name: 'Golden Root', icon: '🌟', rarity: 'rare', type: 'solid' },
     { id: 46, name: 'Mystic Herb', icon: '🌿', rarity: 'rare', type: 'solid' },
@@ -353,8 +685,6 @@ const initialState = {
     { id: 53, name: 'Sunflower', icon: '🌻', rarity: 'rare', type: 'solid' },
     { id: 54, name: 'Moonflower', icon: '🌙', rarity: 'rare', type: 'solid' },
     { id: 55, name: 'Stargrass', icon: '✨', rarity: 'rare', type: 'solid' },
-
-    // Rare Animal Parts
     { id: 56, name: 'Bear Claw', icon: '🐻', rarity: 'rare', type: 'solid' },
     { id: 57, name: 'Wolf Tooth', icon: '🐺', rarity: 'rare', type: 'solid' },
     { id: 58, name: 'Raven Feather', icon: '🐦‍⬛', rarity: 'rare', type: 'solid' },
@@ -365,8 +695,6 @@ const initialState = {
     { id: 63, name: 'Eagle Talon', icon: '🦅', rarity: 'rare', type: 'solid' },
     { id: 64, name: 'Unicorn Hair', icon: '🦄', rarity: 'rare', type: 'solid' },
     { id: 65, name: 'Turtle Shell', icon: '🐢', rarity: 'rare', type: 'solid' },
-
-    // Rare Minerals & Crystals
     { id: 66, name: 'Amethyst', icon: '💜', rarity: 'rare', type: 'solid' },
     { id: 67, name: 'Emerald', icon: '💚', rarity: 'rare', type: 'solid' },
     { id: 68, name: 'Ruby', icon: '❤️', rarity: 'rare', type: 'solid' },
@@ -378,8 +706,6 @@ const initialState = {
     { id: 74, name: 'Adamantine', icon: '💎', rarity: 'rare', type: 'solid' },
     { id: 75, name: 'Barrier Stone', icon: '🛡️', rarity: 'rare', type: 'solid' },
     { id: 76, name: 'Iron Root', icon: '⚙️', rarity: 'rare', type: 'solid' },
-
-    // Rare Essences & Liquids
     { id: 77, name: 'Wind Essence', icon: '💨', rarity: 'rare', type: 'gas' },
     { id: 78, name: 'Shadow Essence', icon: '🌑', rarity: 'rare', type: 'gas' },
     { id: 79, name: 'Lightning Shard', icon: '⚡', rarity: 'rare', type: 'solid' },
@@ -390,8 +716,13 @@ const initialState = {
     { id: 84, name: 'Frost', icon: '❄️', rarity: 'rare', type: 'solid' },
     { id: 85, name: 'Smoke', icon: '💨', rarity: 'rare', type: 'gas' },
 
-    //===== EPIC INGREDIENTS (Level 3+) =====//
-    // Epic Creature Parts
+    //===NEW LOVE-RELATED RARE INGREDIENTS===//
+    { id: 185, name: 'Cupid\'s Arrow', icon: '💘', rarity: 'rare', type: 'solid' },
+    { id: 186, name: 'Heart Crystal', icon: '💖', rarity: 'rare', type: 'solid' },
+    { id: 187, name: 'Love Essence', icon: '💕', rarity: 'rare', type: 'gas' },
+    { id: 188, name: 'Romance Herb', icon: '💐', rarity: 'rare', type: 'solid' },
+
+    //===EPIC INGREDIENTS (Level 3+)===//
     { id: 86, name: 'Phoenix Feather', icon: '🔥', rarity: 'epic', type: 'solid' },
     { id: 87, name: 'Dragon Blood', icon: '🐲', rarity: 'epic', type: 'liquid' },
     { id: 88, name: 'Giant\'s Blood', icon: '🏔️', rarity: 'epic', type: 'liquid' },
@@ -407,8 +738,6 @@ const initialState = {
     { id: 98, name: 'Angel Wing', icon: '👼', rarity: 'epic', type: 'solid' },
     { id: 99, name: 'Minotaur Hide', icon: '🐂', rarity: 'epic', type: 'solid' },
     { id: 100, name: 'Centaur Hair', icon: '🏹', rarity: 'epic', type: 'solid' },
-
-    // Epic Crystals & Stones
     { id: 101, name: 'Starlight Essence', icon: '✨', rarity: 'epic', type: 'gas' },
     { id: 102, name: 'Void Crystal', icon: '🌌', rarity: 'epic', type: 'solid' },
     { id: 103, name: 'Protective Rune', icon: '🔮', rarity: 'epic', type: 'solid' },
@@ -424,8 +753,6 @@ const initialState = {
     { id: 113, name: 'Soul Stone', icon: '💀', rarity: 'epic', type: 'solid' },
     { id: 114, name: 'Mind Crystal', icon: '🧠', rarity: 'epic', type: 'solid' },
     { id: 115, name: 'Heart Stone', icon: '💖', rarity: 'epic', type: 'solid' },
-
-    // Epic Magical Items
     { id: 116, name: 'Wizard\'s Beard', icon: '🧙', rarity: 'epic', type: 'solid' },
     { id: 117, name: 'Fairy Dust', icon: '🧚', rarity: 'epic', type: 'powder' },
     { id: 118, name: 'Elf Tear', icon: '🧝', rarity: 'epic', type: 'liquid' },
@@ -437,8 +764,7 @@ const initialState = {
     { id: 124, name: 'Goblin Ear', icon: '👺', rarity: 'epic', type: 'solid' },
     { id: 125, name: 'Orc Tusk', icon: '🧌', rarity: 'epic', type: 'solid' },
 
-    //===== LEGENDARY INGREDIENTS (Level 5+) =====//
-    // Divine & Celestial
+    //===LEGENDARY INGREDIENTS (Level 5+)===//
     { id: 126, name: 'Phoenix Tear', icon: '💧', rarity: 'legendary', type: 'liquid' },
     { id: 127, name: 'Dragon Scale', icon: '🐲', rarity: 'legendary', type: 'solid' },
     { id: 128, name: 'Eternal Flower', icon: '🌸', rarity: 'legendary', type: 'solid' },
@@ -464,8 +790,6 @@ const initialState = {
     { id: 148, name: 'Miracle Dew', icon: '💧', rarity: 'legendary', type: 'liquid' },
     { id: 149, name: 'Eternal Flame', icon: '🔥', rarity: 'legendary', type: 'gas' },
     { id: 150, name: 'Primordial Water', icon: '🌊', rarity: 'legendary', type: 'liquid' },
-
-    // Ancient & Mythical
     { id: 151, name: 'World Tree Sap', icon: '🌳', rarity: 'legendary', type: 'liquid' },
     { id: 152, name: 'Leviathan Scale', icon: '🐋', rarity: 'legendary', type: 'solid' },
     { id: 153, name: 'Titan\'s Blood', icon: '⚡', rarity: 'legendary', type: 'liquid' },
@@ -475,15 +799,39 @@ const initialState = {
     { id: 157, name: 'Forbidden Fruit', icon: '🍎', rarity: 'legendary', type: 'solid' },
     { id: 158, name: 'Ambrosia', icon: '🍯', rarity: 'legendary', type: 'liquid' },
     { id: 159, name: 'Nectar', icon: '🌺', rarity: 'legendary', type: 'liquid' },
-    { id: 160, name: 'Philosopher\'s Stone', icon: '🪨', rarity: 'legendary', type: 'solid' }
+    { id: 160, name: 'Philosopher\'s Stone', icon: '🪨', rarity: 'legendary', type: 'solid' },
+
+    //===NEW INGREDIENTS FOR EXPANDED RECIPES===//
+    { id: 162, name: 'Perfection Essence', icon: '✨', rarity: 'legendary', type: 'gas' },
+    { id: 163, name: 'Body Crystal', icon: '💪', rarity: 'epic', type: 'solid' },
+    { id: 164, name: 'Ice Essence', icon: '❄️', rarity: 'epic', type: 'gas' },
+    { id: 165, name: 'Winter\'s Breath', icon: '🌨️', rarity: 'epic', type: 'gas' },
+    { id: 166, name: 'Storm Essence', icon: '⛈️', rarity: 'epic', type: 'gas' },
+    { id: 167, name: 'Rage Essence', icon: '😡', rarity: 'epic', type: 'gas' },
+    { id: 168, name: 'Blood Crystal', icon: '🩸', rarity: 'epic', type: 'solid' },
+    { id: 169, name: 'Warrior\'s Spirit', icon: '⚔️', rarity: 'epic', type: 'gas' },
+    { id: 170, name: 'Steel Essence', icon: '🗡️', rarity: 'epic', type: 'gas' },
+    { id: 171, name: 'Combat Crystal', icon: '🛡️', rarity: 'epic', type: 'solid' },
+    { id: 172, name: 'Pack Leader\'s Blood', icon: '🐺', rarity: 'epic', type: 'liquid' },
+    { id: 173, name: 'Unity Crystal', icon: '🤝', rarity: 'epic', type: 'solid' },
+    { id: 174, name: 'War Horn Powder', icon: '📯', rarity: 'epic', type: 'powder' },
+    { id: 175, name: 'Transformation Essence', icon: '🔄', rarity: 'epic', type: 'gas' },
+    { id: 176, name: 'Mirror Shard', icon: '🪞', rarity: 'epic', type: 'solid' },
+    { id: 177, name: 'Identity Crystal', icon: '🎭', rarity: 'epic', type: 'solid' },
+    { id: 178, name: 'Divine Essence', icon: '👑', rarity: 'legendary', type: 'gas' },
+    { id: 179, name: 'Cosmic Awareness', icon: '🌌', rarity: 'legendary', type: 'gas' },
+    { id: 180, name: 'Omnipotence Crystal', icon: '💫', rarity: 'legendary', type: 'solid' },
+    { id: 181, name: 'All-Seeing Eye', icon: '👁️‍🗨️', rarity: 'legendary', type: 'solid' },
+    { id: 182, name: 'Temporal Essence', icon: '⏱️', rarity: 'legendary', type: 'gas' },
+    { id: 183, name: 'Universal Mind', icon: '🧠', rarity: 'legendary', type: 'gas' }
   ]
 };
 
-// Function to generate a customer request based on their personality and the potion category
+// Function to generate a customer request
 function generateCustomerRequest(customer, category, potionName) {
   const templates = requestTemplates[category] || requestTemplates.Utility;
   const baseRequest = templates[Math.floor(Math.random() * templates.length)];
-  
+
   const personalizedIntros = [
     `Greetings, Master Alchemist! I am ${customer.name}.`,
     `Good day! My name is ${customer.name}, and I have urgent need of your services.`,
@@ -491,7 +839,7 @@ function generateCustomerRequest(customer, category, potionName) {
     `Master of the arcane arts, I am ${customer.name}.`,
     `Esteemed Alchemist, I am ${customer.name}, and time is of the essence.`
   ];
-  
+
   const endings = [
     `Can you craft a ${potionName} for me?`,
     `I seek a ${potionName} of the highest quality.`,
@@ -499,34 +847,135 @@ function generateCustomerRequest(customer, category, potionName) {
     `I have heard of your skill - can you create a ${potionName}?`,
     `Please, I need a ${potionName} as soon as possible.`
   ];
-  
+
   const intro = personalizedIntros[Math.floor(Math.random() * personalizedIntros.length)];
   const ending = endings[Math.floor(Math.random() * endings.length)];
-  
+
   return `${intro} ${customer.story} ${baseRequest} ${ending}`;
 }
 
 // Function to assign a random customer to a recipe
 function assignRandomCustomer(recipe) {
-  // Filter customers who would be interested in this category
-  const interestedCustomers = customerPool.filter(customer => 
-    customer.preferences.includes(recipe.category) || 
-    customer.preferences.includes('Utility') // Utility customers take any potion
+  const interestedCustomers = customerPool.filter(customer =>
+    customer.preferences.includes(recipe.category) || customer.preferences.includes('Utility')
   );
-  
-  // If no specific match, allow any customer
+
   const availableCustomers = interestedCustomers.length > 0 ? interestedCustomers : customerPool;
-  
-  // Select random customer
   const selectedCustomer = availableCustomers[Math.floor(Math.random() * availableCustomers.length)];
-  
-  // Generate personalized request
   const request = generateCustomerRequest(selectedCustomer, recipe.category, recipe.name);
-  
+
   return {
     ...selectedCustomer,
     request
   };
+}
+
+// Enhanced recipe selection function to ensure variety
+function selectNextRecipe(allRecipes, availableRecipes, recentRecipes, currentLevel) {
+  console.log('🎯 Recipe Selection Debug:', {
+    totalRecipes: allRecipes.length,
+    availableCount: availableRecipes.length,
+    recentRecipes: recentRecipes.map(r => r.name),
+    currentLevel
+  });
+
+  // If we have 3 or fewer available recipes, just pick randomly to avoid infinite loops
+  if (availableRecipes.length <= 3) {
+    const randomRecipe = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+    console.log('🎯 Small pool - selected:', randomRecipe.name);
+    return randomRecipe;
+  }
+
+  // Filter out recently completed recipes (last 3)
+  const recentIds = recentRecipes.map(r => r.id);
+  let freshRecipes = availableRecipes.filter(recipe => !recentIds.includes(recipe.id));
+
+  // If no fresh recipes available, reset and use all available recipes
+  if (freshRecipes.length === 0) {
+    console.log('🎯 No fresh recipes - resetting variety pool');
+    freshRecipes = availableRecipes;
+  }
+
+  // Prefer recipes from different categories than the last completed one
+  if (recentRecipes.length > 0) {
+    const lastCategory = recentRecipes[recentRecipes.length - 1].category;
+    const differentCategoryRecipes = freshRecipes.filter(recipe => recipe.category !== lastCategory);
+    
+    if (differentCategoryRecipes.length > 0) {
+      freshRecipes = differentCategoryRecipes;
+      console.log('🎯 Filtered by different category from:', lastCategory);
+    }
+  }
+
+  // Add some level progression logic - slightly favor higher level recipes
+  const playerLevelBonus = Math.floor(currentLevel / 2); // Every 2 levels, increase preference for harder recipes
+  const weightedRecipes = [];
+
+  freshRecipes.forEach(recipe => {
+    let weight = 1;
+    
+    // Slightly prefer recipes closer to player level
+    const levelDiff = Math.abs(recipe.level - currentLevel);
+    if (levelDiff <= 1) weight += 2; // Same or ±1 level
+    else if (levelDiff <= 2) weight += 1; // ±2 levels
+    
+    // Add slight preference for higher level recipes as player progresses
+    if (recipe.level >= currentLevel && recipe.level <= currentLevel + playerLevelBonus) {
+      weight += 1;
+    }
+
+    // Add the recipe multiple times based on weight
+    for (let i = 0; i < weight; i++) {
+      weightedRecipes.push(recipe);
+    }
+  });
+
+  const selectedRecipe = weightedRecipes[Math.floor(Math.random() * weightedRecipes.length)];
+  
+  console.log('🎯 Selected recipe:', {
+    name: selectedRecipe.name,
+    category: selectedRecipe.category,
+    level: selectedRecipe.level,
+    freshPoolSize: freshRecipes.length,
+    weightedPoolSize: weightedRecipes.length
+  });
+
+  return selectedRecipe;
+}
+
+// NEW: Function to select a varied starting recipe
+function selectStartingRecipe(allRecipes, availableRecipes, currentLevel) {
+  console.log('🌟 Starting Recipe Selection Debug:', {
+    totalRecipes: allRecipes.length,
+    availableCount: availableRecipes.length,
+    currentLevel
+  });
+
+  // Define starter recipe pool with diverse options
+  const starterRecipeIds = [1, 6, 12, 16]; // Basic Healing, Mana Restoration, Speed Boost, Night Vision
+  const starterRecipes = availableRecipes.filter(recipe => starterRecipeIds.includes(recipe.id));
+
+  // If no starter recipes available (shouldn't happen), fall back to any level 1-2 recipe
+  if (starterRecipes.length === 0) {
+    const lowLevelRecipes = availableRecipes.filter(recipe => recipe.level <= 2);
+    if (lowLevelRecipes.length > 0) {
+      const randomRecipe = lowLevelRecipes[Math.floor(Math.random() * lowLevelRecipes.length)];
+      console.log('🌟 Fallback starter selected:', randomRecipe.name);
+      return randomRecipe;
+    }
+  }
+
+  // Randomly select from the starter pool
+  const selectedRecipe = starterRecipes[Math.floor(Math.random() * starterRecipes.length)];
+  
+  console.log('🌟 Starter recipe selected:', {
+    name: selectedRecipe.name,
+    category: selectedRecipe.category,
+    level: selectedRecipe.level,
+    starterPoolSize: starterRecipes.length
+  });
+
+  return selectedRecipe;
 }
 
 function gameReducer(state, action) {
@@ -561,7 +1010,6 @@ function gameReducer(state, action) {
       };
 
     case 'SELECT_RECIPE':
-      // Assign a random customer to the recipe
       const recipeWithCustomer = {
         ...action.payload,
         customer: assignRandomCustomer(action.payload)
@@ -570,7 +1018,8 @@ function gameReducer(state, action) {
         ...state,
         currentRecipe: recipeWithCustomer,
         selectedIngredients: [],
-        preparedIngredients: []
+        preparedIngredients: [],
+        lastCraftResult: null
       };
 
     case 'ADD_INGREDIENT':
@@ -599,13 +1048,13 @@ function gameReducer(state, action) {
       const existingIndex = updatedPrepared.findIndex(
         p => p.ingredientIndex === action.payload.ingredientIndex
       );
-      
+
       if (existingIndex >= 0) {
         updatedPrepared[existingIndex] = action.payload;
       } else {
         updatedPrepared.push(action.payload);
       }
-      
+
       return {
         ...state,
         preparedIngredients: updatedPrepared
@@ -613,72 +1062,127 @@ function gameReducer(state, action) {
 
     case 'CRAFT_POTION':
       const recipe = state.currentRecipe;
-      
+
+      console.log('🎯 CRAFT_POTION - Full Debug:', {
+        recipe: recipe,
+        selectedIngredients: state.selectedIngredients.map(ing => ing.name),
+        requiredIngredients: recipe.ingredients,
+        preparedIngredients: state.preparedIngredients,
+        requiredPreparations: recipe.preparations
+      });
+
       // Check if ingredients match exactly (correct ingredients in correct order)
       const ingredientsMatch = recipe.ingredients.length === state.selectedIngredients.length &&
-        recipe.ingredients.every((ingredient, index) => 
+        recipe.ingredients.every((ingredient, index) =>
           state.selectedIngredients[index] && state.selectedIngredients[index].name === ingredient
         );
-      
+
       // Check if preparations match exactly
       const preparationsMatch = recipe.preparations.length === state.preparedIngredients.length &&
         recipe.preparations.every((requiredPreparation, recipeIndex) => {
-          const preparation = state.preparedIngredients.find(prep => 
+          const preparation = state.preparedIngredients.find(prep =>
             prep.ingredientIndex === recipeIndex && prep.method === requiredPreparation
           );
           return preparation !== undefined;
         });
-      
-      // Calculate score based on both ingredients and preparations
-      let score = 0;
-      
-      // Ingredients scoring (50% of total)
+
+      // Check timing accuracy - NEW CHALLENGE!
+      const timingAccuracy = state.preparedIngredients.reduce((acc, prep) => {
+        if (prep.timingCorrect) {
+          acc.perfect++;
+        } else if (prep.timingResult >= 20 && prep.timingResult <= 80) {
+          acc.good++;
+        } else {
+          acc.poor++;
+        }
+        acc.total++;
+        return acc;
+      }, { perfect: 0, good: 0, poor: 0, total: 0 });
+
+      // Calculate scores with new timing component
+      let ingredientScore = 0;
+      let preparationScore = 0;
+      let timingScore = 0;
+
+      // Ingredients scoring (33% of total)
       if (ingredientsMatch) {
-        score += 50;
+        ingredientScore = 33;
       } else {
-        // Partial credit for having some correct ingredients in correct positions
         let correctCount = 0;
         recipe.ingredients.forEach((ingredient, index) => {
           if (state.selectedIngredients[index] && state.selectedIngredients[index].name === ingredient) {
             correctCount++;
           }
         });
-        score += Math.floor((correctCount / recipe.ingredients.length) * 50);
+        ingredientScore = Math.floor((correctCount / recipe.ingredients.length) * 33);
       }
-      
-      // Preparation scoring (50% of total)
+
+      // Preparation scoring (33% of total)
       if (preparationsMatch) {
-        score += 50;
+        preparationScore = 33;
       } else {
-        // Partial credit for correct preparations
         let correctPrepCount = 0;
         recipe.preparations.forEach((requiredPrep, index) => {
-          const prep = state.preparedIngredients.find(p => 
+          const prep = state.preparedIngredients.find(p =>
             p.ingredientIndex === index && p.method === requiredPrep
           );
           if (prep) correctPrepCount++;
         });
-        score += Math.floor((correctPrepCount / recipe.preparations.length) * 50);
+        preparationScore = Math.floor((correctPrepCount / recipe.preparations.length) * 33);
       }
-      
-      const percentageScore = Math.max(0, Math.min(100, score));
-      const points = Math.floor(recipe.points * (percentageScore / 100));
+
+      // Timing scoring (34% of total) - NEW!
+      if (timingAccuracy.total > 0) {
+        const timingPercentage = (timingAccuracy.perfect + timingAccuracy.good * 0.5) / timingAccuracy.total;
+        timingScore = Math.floor(timingPercentage * 34);
+      }
+
+      const totalScore = ingredientScore + preparationScore + timingScore;
+      const percentageScore = Math.max(0, Math.min(100, totalScore));
+
+      // Apply coin multiplier boost if active
+      const coinMultiplier = state.activeBoosts.find(boost => boost.type === 'coin_multiplier');
+      let basePoints = Math.floor(recipe.points * (percentageScore / 100));
+      if (coinMultiplier) {
+        basePoints = Math.floor(basePoints * coinMultiplier.amount);
+      }
+
+      const points = basePoints;
       const bonusPoints = percentageScore === 100 && recipe.level >= 5 ? Math.floor(recipe.points * 0.2) : 0;
       const totalPoints = points + bonusPoints;
-      
-      console.log('🎯 CRAFT_POTION Debug:', {
-        selectedIngredients: state.selectedIngredients.map(ing => ing.name),
-        requiredIngredients: recipe.ingredients,
-        ingredientsMatch,
-        preparedIngredients: state.preparedIngredients,
-        requiredPreparations: recipe.preparations,
-        preparationsMatch,
+
+      // Store the craft result
+      const craftResult = {
         percentageScore,
+        ingredientScore,
+        preparationScore,
+        timingScore, // NEW
+        ingredientsMatch,
+        preparationsMatch,
+        timingAccuracy, // NEW
         points,
         bonusPoints,
-        totalPoints
-      });
-      
+        totalPoints,
+        selectedIngredients: state.selectedIngredients,
+        preparedIngredients: state.preparedIngredients
+      };
+
+      console.log('🎯 CRAFT_POTION - Final Result:', craftResult);
+
+      // Update active boosts
+      const updatedBoosts = state.activeBoosts.map(boost => {
+        if (boost.type === 'coin_multiplier') {
+          return { ...boost, duration: boost.duration - 1 };
+        }
+        if (boost.type === 'timing_aid') {
+          return { ...boost, duration: boost.duration - 1 };
+        }
+        return boost;
+      }).filter(boost => boost.duration > 0);
+
+      // Update recent recipes for variety tracking - keep last 3
+      const updatedRecentRecipes = [...state.recentRecipes, recipe].slice(-3);
+
       return {
         ...state,
         score: state.score + totalPoints,
@@ -686,22 +1190,37 @@ function gameReducer(state, action) {
         currentLevel: Math.floor((state.experience + totalPoints) / 500) + 1,
         selectedIngredients: [],
         preparedIngredients: [],
+        lastCraftResult: craftResult,
+        activeBoosts: updatedBoosts,
+        recentRecipes: updatedRecentRecipes, // Track completed recipes
+        hasStarted: true, // Mark that player has started
         gamePhase: 'completed'
       };
 
     case 'NEXT_RECIPE':
-      const availableRecipes = state.recipes.filter(r => r.level <= state.currentLevel);
-      const randomRecipe = availableRecipes[Math.floor(Math.random() * availableRecipes.length)];
+      // Include unlocked recipes in available recipes
+      const allRecipes = [...state.recipes, ...state.unlockedRecipes];
+      const availableRecipes = allRecipes.filter(r => r.level <= state.currentLevel);
       
-      // Assign a new random customer to the new recipe
+      // NEW: Use different selection logic for first recipe vs subsequent recipes
+      let selectedRecipe;
+      if (!state.hasStarted) {
+        // First recipe - use varied starting selection
+        selectedRecipe = selectStartingRecipe(allRecipes, availableRecipes, state.currentLevel);
+      } else {
+        // Subsequent recipes - use enhanced variety selection
+        selectedRecipe = selectNextRecipe(allRecipes, availableRecipes, state.recentRecipes, state.currentLevel);
+      }
+      
       const newRecipeWithCustomer = {
-        ...randomRecipe,
-        customer: assignRandomCustomer(randomRecipe)
+        ...selectedRecipe,
+        customer: assignRandomCustomer(selectedRecipe)
       };
-      
+
       return {
         ...state,
         currentRecipe: newRecipeWithCustomer,
+        lastCraftResult: null,
         gamePhase: 'playing'
       };
 
@@ -710,6 +1229,52 @@ function gameReducer(state, action) {
         ...state,
         score: state.score + action.payload
       };
+
+    case 'PURCHASE_ITEM':
+      const item = action.payload;
+
+      // Check if player can afford the item
+      if (state.score < item.price) {
+        return state;
+      }
+
+      let newState = {
+        ...state,
+        score: state.score - item.price
+      };
+
+      // Handle different item types
+      if (item.type === 'ingredients') {
+        // Add ingredients to owned ingredients
+        const newIngredients = item.items.map(ingredientName => {
+          const foundIngredient = state.availableIngredients.find(ing => ing.name === ingredientName);
+          return foundIngredient || {
+            name: ingredientName,
+            icon: '❓',
+            rarity: item.category,
+            type: 'solid'
+          };
+        });
+        newState.ownedIngredients = [...state.ownedIngredients, ...newIngredients];
+      } else if (item.type === 'boost') {
+        // Handle different boost types
+        if (item.effect.type === 'experience') {
+          // Instant experience boost
+          newState.experience = state.experience + item.effect.amount;
+          newState.currentLevel = Math.floor((state.experience + item.effect.amount) / 500) + 1;
+        } else {
+          // Temporary boosts
+          newState.activeBoosts = [...state.activeBoosts, { ...item.effect, id: Date.now() }];
+        }
+      } else if (item.type === 'recipe') {
+        // Handle recipe unlocks - add to unlocked recipes
+        if (item.recipe) {
+          newState.unlockedRecipes = [...state.unlockedRecipes, item.recipe];
+          console.log('🎯 Recipe unlocked:', item.recipe.name);
+        }
+      }
+
+      return newState;
 
     default:
       return state;
@@ -739,10 +1304,12 @@ export function GameProvider({ children }) {
         user: state.user,
         currentLevel: state.currentLevel,
         score: state.score,
-        experience: state.experience
+        experience: state.experience,
+        recentRecipes: state.recentRecipes, // Save recent recipes for variety
+        hasStarted: state.hasStarted // Save starting status
       }));
     }
-  }, [state.isAuthenticated, state.user, state.currentLevel, state.score, state.experience]);
+  }, [state.isAuthenticated, state.user, state.currentLevel, state.score, state.experience, state.recentRecipes, state.hasStarted]);
 
   return (
     <GameContext.Provider value={{ state, dispatch }}>
@@ -754,7 +1321,7 @@ export function GameProvider({ children }) {
 export function useGame() {
   const context = useContext(GameContext);
   if (!context) {
-    throw new Error('useGame must be used within a GameProvider');
+    throw new error('useGame must be used within a GameProvider');
   }
   return context;
 }

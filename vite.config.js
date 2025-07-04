@@ -18,4 +18,7 @@ export default defineConfig({
       '@': new URL('./src', import.meta.url).pathname,
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'react-icons/fi']
+  }
 });

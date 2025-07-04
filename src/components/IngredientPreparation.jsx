@@ -1,61 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../contexts/GameContext';
 import * as FiIcons from 'react-icons/fi';
 import SafeIcon from '../common/SafeIcon';
 
-const { FiScissors, FiZap, FiDroplet, FiRotateCw, FiHammer, FiFlame, FiWind, FiSun, FiMoon, FiShield, FiBook, FiX, FiEye, FiAlertTriangle } = FiIcons;
+const { 
+  FiScissors, 
+  FiZap, 
+  FiDroplet, 
+  FiRotateCw, 
+  FiHammer, 
+  FiFlame, 
+  FiWind, 
+  FiSun, 
+  FiMoon, 
+  FiShield, 
+  FiBook, 
+  FiX, 
+  FiEye, 
+  FiAlertTriangle, 
+  FiClock, 
+  FiPlay, 
+  FiPause, 
+  FiCheck, 
+  FiSkipForward 
+} = FiIcons;
 
 // Preparation methods with ingredient type compatibility
 const preparationMethods = {
   // Solid ingredient methods
-  chop: { icon: FiScissors, color: 'text-orange-500', description: 'Chop finely with precision', compatibleTypes: ['solid'] },
-  crush: { icon: FiHammer, color: 'text-red-500', description: 'Crush into powder', compatibleTypes: ['solid'] },
-  grind: { icon: FiHammer, color: 'text-stone-500', description: 'Grind into fine particles', compatibleTypes: ['solid'] },
-  carve: { icon: FiScissors, color: 'text-stone-600', description: 'Carve intricate symbols', compatibleTypes: ['solid'] },
-  pound: { icon: FiHammer, color: 'text-stone-700', description: 'Pound with rhythmic strikes', compatibleTypes: ['solid'] },
-  forge: { icon: FiHammer, color: 'text-red-800', description: 'Forge with elemental heat', compatibleTypes: ['solid'] },
-  shatter: { icon: FiHammer, color: 'text-red-700', description: 'Shatter with controlled force', compatibleTypes: ['solid'] },
-  polish: { icon: FiRotateCw, color: 'text-gray-400', description: 'Polish to perfection', compatibleTypes: ['solid'] },
-  pluck: { icon: FiScissors, color: 'text-amber-600', description: 'Pluck at the perfect moment', compatibleTypes: ['solid'] },
-  scale: { icon: FiScissors, color: 'text-blue-600', description: 'Scale with precision', compatibleTypes: ['solid'] },
+  chop: { icon: FiScissors, color: 'text-orange-500', description: 'Chop finely with precision', compatibleTypes: ['solid'], timingWindow: 3000 },
+  crush: { icon: FiHammer, color: 'text-red-500', description: 'Crush into powder', compatibleTypes: ['solid'], timingWindow: 2500 },
+  grind: { icon: FiHammer, color: 'text-stone-500', description: 'Grind into fine particles', compatibleTypes: ['solid'], timingWindow: 4000 },
+  carve: { icon: FiScissors, color: 'text-stone-600', description: 'Carve intricate symbols', compatibleTypes: ['solid'], timingWindow: 5000 },
+  pound: { icon: FiHammer, color: 'text-stone-700', description: 'Pound with rhythmic strikes', compatibleTypes: ['solid'], timingWindow: 3500 },
+  forge: { icon: FiHammer, color: 'text-red-800', description: 'Forge with elemental heat', compatibleTypes: ['solid'], timingWindow: 6000 },
+  shatter: { icon: FiHammer, color: 'text-red-700', description: 'Shatter with controlled force', compatibleTypes: ['solid'], timingWindow: 2000 },
+  polish: { icon: FiRotateCw, color: 'text-gray-400', description: 'Polish to perfection', compatibleTypes: ['solid'], timingWindow: 4500 },
+  pluck: { icon: FiScissors, color: 'text-amber-600', description: 'Pluck at the perfect moment', compatibleTypes: ['solid'], timingWindow: 1500 },
+  scale: { icon: FiScissors, color: 'text-blue-600', description: 'Scale with precision', compatibleTypes: ['solid'], timingWindow: 3000 },
 
   // Liquid ingredient methods
-  boil: { icon: FiDroplet, color: 'text-blue-500', description: 'Boil until essence emerges', compatibleTypes: ['liquid'] },
-  purify: { icon: FiShield, color: 'text-cyan-500', description: 'Purify with sacred rituals', compatibleTypes: ['liquid'] },
-  dissolve: { icon: FiDroplet, color: 'text-blue-400', description: 'Dissolve completely', compatibleTypes: ['liquid', 'powder'] },
-  heat: { icon: FiFlame, color: 'text-red-600', description: 'Heat to perfect temperature', compatibleTypes: ['liquid'] },
-  steep: { icon: FiDroplet, color: 'text-green-400', description: 'Steep in magical waters', compatibleTypes: ['liquid'] },
-  extract: { icon: FiDroplet, color: 'text-green-600', description: 'Extract vital compounds', compatibleTypes: ['liquid', 'solid'] },
+  boil: { icon: FiDroplet, color: 'text-blue-500', description: 'Boil until essence emerges', compatibleTypes: ['liquid'], timingWindow: 5000 },
+  purify: { icon: FiShield, color: 'text-cyan-500', description: 'Purify with sacred rituals', compatibleTypes: ['liquid'], timingWindow: 4000 },
+  dissolve: { icon: FiDroplet, color: 'text-blue-400', description: 'Dissolve completely', compatibleTypes: ['liquid', 'powder'], timingWindow: 3500 },
+  heat: { icon: FiFlame, color: 'text-red-600', description: 'Heat to perfect temperature', compatibleTypes: ['liquid'], timingWindow: 4500 },
+  steep: { icon: FiDroplet, color: 'text-green-400', description: 'Steep in magical waters', compatibleTypes: ['liquid'], timingWindow: 6000 },
+  extract: { icon: FiDroplet, color: 'text-green-600', description: 'Extract vital compounds', compatibleTypes: ['liquid', 'solid'], timingWindow: 3000 },
 
   // Gas/essence methods
-  capture: { icon: FiWind, color: 'text-cyan-400', description: 'Capture fleeting essence', compatibleTypes: ['gas'] },
-  concentrate: { icon: FiDroplet, color: 'text-indigo-600', description: 'Concentrate the essence', compatibleTypes: ['gas', 'liquid'] },
-  condense: { icon: FiWind, color: 'text-gray-500', description: 'Condense vaporous essence', compatibleTypes: ['gas'] },
+  capture: { icon: FiWind, color: 'text-cyan-400', description: 'Capture fleeting essence', compatibleTypes: ['gas'], timingWindow: 2000 },
+  concentrate: { icon: FiDroplet, color: 'text-indigo-600', description: 'Concentrate the essence', compatibleTypes: ['gas', 'liquid'], timingWindow: 4000 },
+  condense: { icon: FiWind, color: 'text-gray-500', description: 'Condense vaporous essence', compatibleTypes: ['gas'], timingWindow: 3500 },
 
-  // Universal methods - BURN IS HERE!
-  burn: { icon: FiFlame, color: 'text-red-600', description: 'Burn to release magical properties', compatibleTypes: ['solid', 'liquid', 'gas', 'powder'] },
-  mix: { icon: FiRotateCw, color: 'text-purple-500', description: 'Mix with careful circular motions', compatibleTypes: ['solid', 'liquid', 'powder'] },
-  enchant: { icon: FiZap, color: 'text-yellow-500', description: 'Enchant with magical energy', compatibleTypes: ['solid', 'liquid', 'gas'] },
-  infuse: { icon: FiSun, color: 'text-amber-500', description: 'Infuse with moonlight', compatibleTypes: ['solid', 'liquid', 'gas'] },
-  channel: { icon: FiZap, color: 'text-purple-600', description: 'Channel arcane energies', compatibleTypes: ['solid', 'liquid', 'gas'] },
-  weave: { icon: FiRotateCw, color: 'text-indigo-500', description: 'Weave magical patterns', compatibleTypes: ['solid', 'gas'] },
-  activate: { icon: FiZap, color: 'text-yellow-600', description: 'Activate dormant powers', compatibleTypes: ['solid', 'liquid', 'gas'] },
-  sanctify: { icon: FiShield, color: 'text-white', description: 'Sanctify with holy energy', compatibleTypes: ['solid', 'liquid', 'gas'] },
-  roast: { icon: FiFlame, color: 'text-orange-600', description: 'Roast over mystical flames', compatibleTypes: ['solid'] },
-  dry: { icon: FiSun, color: 'text-yellow-400', description: 'Dry under sacred sunlight', compatibleTypes: ['solid', 'liquid'] },
-  charge: { icon: FiZap, color: 'text-blue-600', description: 'Charge with lightning energy', compatibleTypes: ['solid', 'liquid', 'gas'] },
-  focus: { icon: FiSun, color: 'text-yellow-500', description: 'Focus light through crystal', compatibleTypes: ['solid'] },
-  filter: { icon: FiWind, color: 'text-cyan-500', description: 'Filter through enchanted cloth', compatibleTypes: ['liquid'] },
-  aerate: { icon: FiWind, color: 'text-blue-300', description: 'Aerate with gentle winds', compatibleTypes: ['liquid'] },
-  phase: { icon: FiMoon, color: 'text-purple-400', description: 'Phase between dimensions', compatibleTypes: ['gas'] },
-  scatter: { icon: FiWind, color: 'text-gray-600', description: 'Scatter like stardust', compatibleTypes: ['powder'] },
-  wither: { icon: FiMoon, color: 'text-purple-700', description: 'Wither under moonlight', compatibleTypes: ['solid'] },
-  levitate: { icon: FiWind, color: 'text-cyan-300', description: 'Levitate with air magic', compatibleTypes: ['solid'] },
-  whip: { icon: FiRotateCw, color: 'text-white', description: 'Whip into ethereal foam', compatibleTypes: ['liquid'] },
-  suspend: { icon: FiWind, color: 'text-gray-300', description: 'Suspend in magical field', compatibleTypes: ['solid', 'liquid'] },
-  sift: { icon: FiWind, color: 'text-green-500', description: 'Sift through magical mesh', compatibleTypes: ['powder'] },
-  bloom: { icon: FiSun, color: 'text-pink-500', description: 'Allow to bloom naturally', compatibleTypes: ['solid'] }
+  // Universal methods
+  burn: { icon: FiFlame, color: 'text-red-600', description: 'Burn to release magical properties', compatibleTypes: ['solid', 'liquid', 'gas', 'powder'], timingWindow: 3000 },
+  mix: { icon: FiRotateCw, color: 'text-purple-500', description: 'Mix with careful circular motions', compatibleTypes: ['solid', 'liquid', 'powder'], timingWindow: 4000 },
+  enchant: { icon: FiZap, color: 'text-yellow-500', description: 'Enchant with magical energy', compatibleTypes: ['solid', 'liquid', 'gas'], timingWindow: 5000 },
+  infuse: { icon: FiSun, color: 'text-amber-500', description: 'Infuse with moonlight', compatibleTypes: ['solid', 'liquid', 'gas'], timingWindow: 4500 },
+  channel: { icon: FiZap, color: 'text-purple-600', description: 'Channel arcane energies', compatibleTypes: ['solid', 'liquid', 'gas'], timingWindow: 3500 },
+  weave: { icon: FiRotateCw, color: 'text-indigo-500', description: 'Weave magical patterns', compatibleTypes: ['solid', 'gas'], timingWindow: 5500 },
+  activate: { icon: FiZap, color: 'text-yellow-600', description: 'Activate dormant powers', compatibleTypes: ['solid', 'liquid', 'gas'], timingWindow: 2500 },
+  sanctify: { icon: FiShield, color: 'text-white', description: 'Sanctify with holy energy', compatibleTypes: ['solid', 'liquid', 'gas'], timingWindow: 6000 }
 };
 
 function IngredientPreparation() {
@@ -63,6 +69,61 @@ function IngredientPreparation() {
   const [selectedMethod, setSelectedMethod] = useState({});
   const [completedPreparations, setCompletedPreparations] = useState([]);
   const [showRecipe, setShowRecipe] = useState(false);
+  const [timingChallenges, setTimingChallenges] = useState({});
+  const [activeTimers, setActiveTimers] = useState({});
+  
+  // Overall preparation timer (60 seconds)
+  const [preparationTimeLeft, setPreparationTimeLeft] = useState(60);
+  const [preparationTimerActive, setPreparationTimerActive] = useState(true);
+  const [missedIngredients, setMissedIngredients] = useState([]);
+
+  // Start the overall preparation timer
+  useEffect(() => {
+    if (!preparationTimerActive) return;
+
+    const timer = setInterval(() => {
+      setPreparationTimeLeft(prev => {
+        if (prev <= 1) {
+          setPreparationTimerActive(false);
+          // Auto-fail any remaining ingredients
+          const remainingIngredients = state.selectedIngredients
+            .map((_, index) => index)
+            .filter(index => !completedPreparations.includes(index));
+          
+          if (remainingIngredients.length > 0) {
+            setMissedIngredients(remainingIngredients);
+            // Auto-prepare missed ingredients with failed status
+            remainingIngredients.forEach(ingredientIndex => {
+              dispatch({
+                type: 'PREPARE_INGREDIENT',
+                payload: {
+                  ingredientIndex,
+                  method: 'timeout',
+                  isCorrect: false,
+                  methodCorrect: false,
+                  timingCorrect: false,
+                  timingResult: 0,
+                  missedDueToTimeout: true
+                }
+              });
+            });
+            setCompletedPreparations(prev => [...prev, ...remainingIngredients]);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [preparationTimerActive, completedPreparations, state.selectedIngredients, dispatch]);
+
+  // Stop the timer when all preparations are complete
+  useEffect(() => {
+    if (completedPreparations.length === state.selectedIngredients.length) {
+      setPreparationTimerActive(false);
+    }
+  }, [completedPreparations.length, state.selectedIngredients.length]);
 
   const getIngredientType = (ingredientName) => {
     const ingredient = state.availableIngredients.find(ing => ing.name === ingredientName);
@@ -76,6 +137,8 @@ function IngredientPreparation() {
   };
 
   const handleMethodSelect = (ingredientIndex, method) => {
+    if (!preparationTimerActive) return;
+    
     const ingredient = state.selectedIngredients[ingredientIndex];
     const ingredientType = getIngredientType(ingredient.name);
     const methodConfig = preparationMethods[method];
@@ -88,19 +151,131 @@ function IngredientPreparation() {
     }
   };
 
+  const startTimingChallenge = (ingredientIndex) => {
+    if (!preparationTimerActive) return;
+    
+    const method = selectedMethod[ingredientIndex];
+    if (!method) return;
+
+    const methodConfig = preparationMethods[method];
+    const timingWindow = methodConfig.timingWindow;
+    const startTime = Date.now();
+    
+    setTimingChallenges(prev => ({
+      ...prev,
+      [ingredientIndex]: {
+        isActive: true,
+        startTime: startTime,
+        duration: timingWindow,
+        targetStart: timingWindow * 0.3,
+        targetEnd: timingWindow * 0.7,
+        completed: false
+      }
+    }));
+
+    setActiveTimers(prev => ({
+      ...prev,
+      [ingredientIndex]: {
+        progress: 0,
+        isRunning: true
+      }
+    }));
+
+    const animateTimer = () => {
+      const currentTime = Date.now();
+      const elapsed = currentTime - startTime;
+      const progress = Math.min((elapsed / timingWindow) * 100, 100);
+      
+      setActiveTimers(prev => ({
+        ...prev,
+        [ingredientIndex]: {
+          ...prev[ingredientIndex],
+          progress: progress
+        }
+      }));
+
+      if (progress < 100) {
+        requestAnimationFrame(animateTimer);
+      } else {
+        setTimingChallenges(prev => ({
+          ...prev,
+          [ingredientIndex]: {
+            ...prev[ingredientIndex],
+            isActive: false,
+            completed: true,
+            success: false,
+            finalProgress: 100
+          }
+        }));
+        
+        setActiveTimers(prev => ({
+          ...prev,
+          [ingredientIndex]: {
+            ...prev[ingredientIndex],
+            isRunning: false
+          }
+        }));
+      }
+    };
+
+    requestAnimationFrame(animateTimer);
+  };
+
+  const handleTimingClick = (ingredientIndex) => {
+    if (!preparationTimerActive) return;
+    
+    const challenge = timingChallenges[ingredientIndex];
+    if (!challenge || !challenge.isActive) return;
+
+    const elapsed = Date.now() - challenge.startTime;
+    const progress = (elapsed / challenge.duration) * 100;
+    
+    const isInSweetSpot = progress >= 30 && progress <= 70;
+    
+    setTimingChallenges(prev => ({
+      ...prev,
+      [ingredientIndex]: {
+        ...prev[ingredientIndex],
+        isActive: false,
+        completed: true,
+        success: isInSweetSpot,
+        finalProgress: progress
+      }
+    }));
+
+    setActiveTimers(prev => ({
+      ...prev,
+      [ingredientIndex]: {
+        ...prev[ingredientIndex],
+        isRunning: false
+      }
+    }));
+  };
+
   const handlePrepare = (ingredientIndex) => {
+    if (!preparationTimerActive) return;
+    
     const method = selectedMethod[ingredientIndex];
     if (!method) return;
 
     const requiredMethod = state.currentRecipe.preparations[ingredientIndex];
-    const isCorrect = method === requiredMethod;
+    const isCorrectMethod = method === requiredMethod;
+    
+    const timingResult = timingChallenges[ingredientIndex];
+    const hasTimingSuccess = timingResult && timingResult.success;
+    
+    const isCorrect = isCorrectMethod && hasTimingSuccess;
 
     dispatch({
       type: 'PREPARE_INGREDIENT',
       payload: {
         ingredientIndex,
         method,
-        isCorrect
+        isCorrect,
+        methodCorrect: isCorrectMethod,
+        timingCorrect: hasTimingSuccess,
+        timingResult: timingResult?.finalProgress || 0,
+        missedDueToTimeout: false
       }
     });
 
@@ -113,6 +288,18 @@ function IngredientPreparation() {
 
   const allPreparationsComplete = completedPreparations.length === state.selectedIngredients.length;
 
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getTimerColor = () => {
+    if (preparationTimeLeft > 30) return 'text-green-400';
+    if (preparationTimeLeft > 15) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -122,44 +309,89 @@ function IngredientPreparation() {
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-stone-800 rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-stone-700 shadow-2xl relative"
+        className="bg-stone-800 rounded-2xl p-8 max-w-6xl w-full max-h-[90vh] overflow-y-auto border border-stone-700 shadow-2xl relative"
       >
-        {/* Recipe Reference Button */}
-        <button
-          onClick={() => setShowRecipe(true)}
-          className="absolute top-4 right-16 bg-amber-600 hover:bg-amber-700 text-white p-3 rounded-xl transition-all duration-300 shadow-lg"
-          title="View Recipe"
-        >
-          <SafeIcon icon={FiBook} className="w-5 h-5" />
-        </button>
-
         {/* Close Button */}
         <button
           onClick={() => dispatch({ type: 'SELECT_RECIPE', payload: state.currentRecipe })}
-          className="absolute top-4 right-4 text-stone-400 hover:text-stone-300 transition-colors"
+          className="absolute top-4 right-4 text-stone-400 hover:text-stone-300 transition-colors z-10"
           title="Back to Laboratory"
         >
           <SafeIcon icon={FiX} className="w-6 h-6" />
         </button>
 
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-medieval font-bold text-amber-400 mb-2">
-            Ingredient Preparation
-          </h2>
-          <p className="text-stone-300">
-            Each ingredient must be prepared with the correct method to create the perfect potion
+        {/* Header with Timer */}
+        <div className="text-center mb-6 pr-12">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <h2 className="text-3xl font-medieval font-bold text-amber-400">
+              Ingredient Preparation
+            </h2>
+            {/* Overall Preparation Timer */}
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${
+              preparationTimerActive 
+                ? preparationTimeLeft > 15 
+                  ? 'border-green-500 bg-green-900/20' 
+                  : 'border-red-500 bg-red-900/20 animate-pulse'
+                : 'border-stone-500 bg-stone-900/20'
+            }`}>
+              <SafeIcon icon={FiClock} className={`w-5 h-5 ${getTimerColor()}`} />
+              <span className={`font-bold text-lg ${getTimerColor()}`}>
+                {formatTime(preparationTimeLeft)}
+              </span>
+              {!preparationTimerActive && (
+                <SafeIcon icon={FiAlertTriangle} className="w-5 h-5 text-red-400" />
+              )}
+            </div>
+          </div>
+
+          <p className="text-stone-300 mb-2">
+            Each ingredient must be prepared with the correct method AND perfect timing!
           </p>
+          
+          {/* Timer Warning */}
+          <div className={`border rounded-lg p-3 mt-4 ${
+            preparationTimerActive 
+              ? 'bg-red-900/30 border-red-500' 
+              : 'bg-stone-900/30 border-stone-500'
+          }`}>
+            <div className="flex items-center justify-center text-sm font-medium">
+              <SafeIcon icon={FiClock} className="w-4 h-4 mr-2" />
+              {preparationTimerActive ? (
+                <span className="text-red-300">
+                  ⏰ HURRY! Complete all preparations before time runs out!
+                </span>
+              ) : (
+                <span className="text-stone-400">
+                  ⏰ TIME'S UP! Incomplete preparations will be marked as failed.
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Recipe Reference Button */}
+        <div className="flex justify-center mb-6">
+          <button
+            onClick={() => setShowRecipe(true)}
+            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl transition-all duration-300 shadow-lg flex items-center space-x-2"
+            title="View Recipe"
+          >
+            <SafeIcon icon={FiBook} className="w-5 h-5" />
+            <span>View Recipe</span>
+          </button>
         </div>
 
         {/* Ingredients Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {state.selectedIngredients.map((ingredient, index) => {
             const isCompleted = completedPreparations.includes(index);
+            const isMissed = missedIngredients.includes(index);
             const requiredMethod = state.currentRecipe.preparations[index];
             const selectedMethodForIngredient = selectedMethod[index];
             const ingredientType = getIngredientType(ingredient.name);
             const compatibleMethods = getCompatibleMethods(ingredientType);
+            const timingChallenge = timingChallenges[index];
+            const timer = activeTimers[index];
 
             return (
               <motion.div
@@ -169,7 +401,11 @@ function IngredientPreparation() {
                 transition={{ delay: index * 0.1 }}
                 className={`bg-stone-700 rounded-xl p-4 border-2 transition-all duration-300 ${
                   isCompleted 
-                    ? 'border-green-500 bg-green-900/20' 
+                    ? isMissed 
+                      ? 'border-red-500 bg-red-900/20' 
+                      : 'border-green-500 bg-green-900/20'
+                    : !preparationTimerActive
+                    ? 'border-stone-500 bg-stone-900/20 opacity-60'
                     : 'border-stone-600 hover:border-amber-500'
                 }`}
               >
@@ -202,12 +438,6 @@ function IngredientPreparation() {
                         <SafeIcon icon={FiEye} className="w-4 h-4 mr-2" />
                         <span>Required: <strong className="capitalize">{requiredMethod}</strong></span>
                       </div>
-                      {!preparationMethods[requiredMethod]?.compatibleTypes.includes(ingredientType) && (
-                        <div className="flex items-center text-red-300 text-xs mt-1">
-                          <SafeIcon icon={FiAlertTriangle} className="w-3 h-3 mr-1" />
-                          <span>Warning: Method may not be compatible with ingredient type!</span>
-                        </div>
-                      )}
                     </div>
 
                     {/* Method Selection */}
@@ -220,8 +450,11 @@ function IngredientPreparation() {
                           <button
                             key={method}
                             onClick={() => handleMethodSelect(index, method)}
+                            disabled={!preparationTimerActive}
                             className={`p-2 rounded-lg border-2 transition-all duration-200 ${
-                              selectedMethodForIngredient === method
+                              !preparationTimerActive 
+                                ? 'border-stone-600 bg-stone-900/50 opacity-50 cursor-not-allowed'
+                                : selectedMethodForIngredient === method
                                 ? 'border-amber-500 bg-amber-500/20'
                                 : method === requiredMethod
                                 ? 'border-green-500 hover:border-green-400'
@@ -237,15 +470,87 @@ function IngredientPreparation() {
                       </div>
                     </div>
 
-                    {/* Selected Method Description */}
+                    {/* Timing Challenge */}
                     {selectedMethodForIngredient && (
-                      <div className="mb-4 p-3 bg-stone-600/50 rounded-lg">
-                        <div className="text-xs text-stone-300">
-                          {preparationMethods[selectedMethodForIngredient].description}
-                        </div>
-                        {selectedMethodForIngredient === requiredMethod && (
-                          <div className="text-xs text-green-400 mt-1 font-medium">
-                            ✓ Perfect match!
+                      <div className="mb-4">
+                        {!timingChallenge || !timingChallenge.completed ? (
+                          <div className="space-y-3">
+                            <div className="text-center">
+                              <button
+                                onClick={() => startTimingChallenge(index)}
+                                disabled={!preparationTimerActive || (timingChallenge && timingChallenge.isActive)}
+                                className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
+                                  !preparationTimerActive
+                                    ? 'bg-stone-600 text-stone-400 cursor-not-allowed'
+                                    : timingChallenge && timingChallenge.isActive
+                                    ? 'bg-red-600 text-white cursor-not-allowed'
+                                    : 'bg-purple-600 hover:bg-purple-700 text-white'
+                                }`}
+                              >
+                                <SafeIcon icon={FiPlay} className="w-4 h-4 inline mr-2" />
+                                {!preparationTimerActive ? 'Time Expired' :
+                                 timingChallenge && timingChallenge.isActive ? 'Timing Active!' : 'Start Timing Challenge'}
+                              </button>
+                            </div>
+
+                            {/* Timer Bar */}
+                            {timer && timer.isRunning && (
+                              <div className="relative">
+                                <div className="w-full h-8 bg-stone-600 rounded-lg overflow-hidden border-2 border-stone-500 relative">
+                                  {/* Background sections */}
+                                  <div className="absolute inset-0 flex">
+                                    <div className="w-[30%] bg-red-500/30"></div>
+                                    <div className="w-[40%] bg-green-500/30"></div>
+                                    <div className="w-[30%] bg-red-500/30"></div>
+                                  </div>
+                                  
+                                  {/* Progress bar */}
+                                  <div
+                                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-75 ease-linear relative"
+                                    style={{ width: `${timer.progress}%` }}
+                                  >
+                                    <div className="absolute right-0 top-0 w-1 h-full bg-white shadow-lg"></div>
+                                  </div>
+                                  
+                                  {/* Zone indicators */}
+                                  <div className="absolute top-0 left-[30%] w-[40%] h-full border-x-2 border-green-400 pointer-events-none">
+                                    <div className="text-xs text-green-400 font-bold text-center leading-8">SWEET SPOT</div>
+                                  </div>
+                                </div>
+                                
+                                {/* Click target */}
+                                <button
+                                  onClick={() => handleTimingClick(index)}
+                                  className="absolute inset-0 w-full h-full bg-transparent hover:bg-white/10 rounded-lg transition-colors"
+                                  title="Click when in the green zone!"
+                                >
+                                  <div className="flex items-center justify-center h-full">
+                                    <span className="text-white font-bold text-sm drop-shadow-lg">CLICK!</span>
+                                  </div>
+                                </button>
+
+                                {/* Progress indicator */}
+                                <div className="text-center mt-2">
+                                  <div className="text-xs text-stone-400">
+                                    Progress: {Math.round(timer.progress)}%
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
+                              timingChallenge.success ? 'bg-green-500' : 'bg-red-500'
+                            }`}>
+                              <SafeIcon icon={timingChallenge.success ? FiCheck : FiX} className="w-6 h-6 text-white" />
+                            </div>
+                            <div className={`font-medium ${timingChallenge.success ? 'text-green-400' : 'text-red-400'}`}>
+                              {timingChallenge.success ? 'Perfect Timing!' : 'Timing Failed!'}
+                            </div>
+                            <div className="text-xs text-stone-400 mt-1">
+                              Clicked at {Math.round(timingChallenge.finalProgress)}%
+                            </div>
                           </div>
                         )}
                       </div>
@@ -254,35 +559,31 @@ function IngredientPreparation() {
                     {/* Prepare Button */}
                     <button
                       onClick={() => handlePrepare(index)}
-                      disabled={!selectedMethodForIngredient}
+                      disabled={!preparationTimerActive || !selectedMethodForIngredient || !timingChallenge || !timingChallenge.completed}
                       className={`w-full py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
-                        selectedMethodForIngredient
+                        !preparationTimerActive
+                          ? 'bg-stone-600 text-stone-400 cursor-not-allowed'
+                          : selectedMethodForIngredient && timingChallenge && timingChallenge.completed
                           ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600'
                           : 'bg-stone-600 text-stone-400 cursor-not-allowed'
                       }`}
                     >
-                      Prepare Ingredient
+                      {!preparationTimerActive ? 'Time Expired' : 'Prepare Ingredient'}
                     </button>
                   </>
                 ) : (
                   <div className="text-center">
-                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <SafeIcon 
-                        icon={preparationMethods[selectedMethod[index]]?.icon || FiScissors} 
-                        className="w-6 h-6 text-white" 
-                      />
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 ${
+                      isMissed ? 'bg-red-500' : 'bg-green-500'
+                    }`}>
+                      <SafeIcon icon={isMissed ? FiSkipForward : FiCheck} className="w-6 h-6 text-white" />
                     </div>
-                    <div className="text-green-400 font-medium">
-                      Preparation Complete!
+                    <div className={`font-medium ${isMissed ? 'text-red-400' : 'text-green-400'}`}>
+                      {isMissed ? 'Missed - Time Expired!' : 'Preparation Complete!'}
                     </div>
                     <div className="text-xs text-stone-400 mt-1">
-                      Method: {selectedMethod[index]}
+                      Method: {selectedMethod[index] || 'None'}
                     </div>
-                    {selectedMethod[index] === requiredMethod && (
-                      <div className="text-xs text-green-400 mt-1 font-medium">
-                        ✓ Perfect preparation!
-                      </div>
-                    )}
                   </div>
                 )}
               </motion.div>
@@ -305,14 +606,19 @@ function IngredientPreparation() {
           >
             {allPreparationsComplete 
               ? 'Brew Potion!' 
-              : `Prepare All Ingredients (${completedPreparations.length}/${state.selectedIngredients.length})`
+              : `Complete All Preparations (${completedPreparations.length}/${state.selectedIngredients.length})`
             }
           </motion.button>
         </div>
 
-        {/* Hint */}
+        {/* Enhanced Hint */}
         <div className="mt-6 text-center text-stone-400 text-sm">
-          <p>💡 Tip: Different ingredient types require different preparation methods!</p>
+          <p>💡 Master all THREE challenges: Correct ingredients, right methods, AND perfect timing!</p>
+          {missedIngredients.length > 0 && (
+            <p className="text-red-400 mt-2">
+              ⚠️ {missedIngredients.length} ingredient(s) missed due to time limit - this will affect your score!
+            </p>
+          )}
         </div>
       </motion.div>
 
@@ -390,11 +696,34 @@ function IngredientPreparation() {
                 </div>
               </div>
 
+              {/* Timing Challenge Info */}
+              <div className="mb-6">
+                <h4 className="text-lg font-semibold text-red-800 mb-3 flex items-center">
+                  <SafeIcon icon={FiClock} className="w-5 h-5 mr-2" />
+                  Time Pressure:
+                </h4>
+                <div className="bg-red-100 rounded-lg p-4 border border-red-200">
+                  <div className="text-red-800 text-sm space-y-2">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-600 rounded-full mr-3"></div>
+                      <span>60 seconds to complete ALL preparations</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-600 rounded-full mr-3"></div>
+                      <span>Click during the GREEN zone for perfect timing</span>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 bg-red-600 rounded-full mr-3"></div>
+                      <span>Missed preparations = failed ingredients</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Instructions */}
               <div className="bg-stone-100 rounded-lg p-4 border-l-4 border-stone-400">
                 <p className="text-stone-700 text-sm italic">
-                  "Follow these exact preparation methods in order to achieve the perfect {state.currentRecipe.name}. 
-                  Each ingredient must be prepared with precision to unlock its magical properties."
+                  "Master the quadruple challenge: Select ingredients in perfect order, use correct preparation methods, achieve perfect timing, and do it all within 60 seconds. Only then will you create the legendary {state.currentRecipe.name}."
                 </p>
               </div>
             </motion.div>

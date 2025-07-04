@@ -70,11 +70,6 @@ function RecipeLetter() {
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d97706' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40z'/%3E%3C/g%3E%3C/svg%3E")`,
       }}
     >
-      {/* Wax Seal */}
-      <div className="absolute top-4 right-4 w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
-        <SafeIcon icon={FiMail} className="w-6 h-6 text-white" />
-      </div>
-
       {/* Letter Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
@@ -121,7 +116,7 @@ function RecipeLetter() {
           {state.currentRecipe.name}
         </h3>
         <p className="text-stone-700 mb-4">{state.currentRecipe.description}</p>
-        
+
         {/* Difficulty Rating */}
         <div className="bg-stone-100 rounded-lg p-3 border-l-4 border-stone-400 mb-4">
           <div className="flex items-center justify-between">
